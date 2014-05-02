@@ -50,7 +50,6 @@ class NotificationBuffer(object):
             self.cache = self.cache[-self.cache_size:]
 
 
-# Making this a non-singleton is left as an exercise for the reader.
 global_message_buffer = NotificationBuffer()
 
 
