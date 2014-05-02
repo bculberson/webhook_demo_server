@@ -50,12 +50,12 @@ class NotificationBuffer(object):
             self.cache = self.cache[-self.cache_size:]
 
 
-global_message_buffer = NotificationBuffer()
+global_buffer = NotificationBuffer()
 
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html", notifications=global_message_buffer.cache)
+        self.render("index.html", notifications=global_buffer.cache)
 
 
 class CallbackHandler(tornado.web.RequestHandler):
@@ -69,7 +69,7 @@ class CallbackHandler(tornado.web.RequestHandler):
         }
         notification["html"] = tornado.escape.to_basestring(self.render_string("notification.html",
                                                                                notification=notification))
-        global_message_buffer.new_notifications([notification])
+        global_buffer.new_notifications([notification])
 
 
 class CallbackTimeoutHandler(tornado.web.RequestHandler):
@@ -97,7 +97,7 @@ class CallbackWatcher(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def post(self):
         cursor = self.get_argument("cursor", None)
-        global_message_buffer.wait_for_notifications(self.on_new_notifications, cursor=cursor)
+        global_buffer.wait_for_notifications(self.on_new_notifications, cursor=cursor)
 
     def on_new_notifications(self, notifications):
         # Closed client connection
@@ -106,7 +106,7 @@ class CallbackWatcher(tornado.web.RequestHandler):
         self.finish(dict(notifications=notifications))
 
     def on_connection_close(self):
-        global_message_buffer.cancel_wait(self.on_new_notifications)
+        global_buffer.cancel_wait(self.on_new_notifications)
 
 
 if __name__ == "__main__":
